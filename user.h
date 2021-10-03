@@ -17,11 +17,13 @@ namespace DutElab {
         int uid;
         string name;
         string uuid;
-        string lent_books[];
         string email;
         encrypted_string password;
         string permission_group;
+        char** lent_books;
     };
 }
+
+
 
 #endif //DUT_ELAB_TEST_CORE_USER_H

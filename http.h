@@ -5,4 +5,6 @@
 #ifndef DUT_ELAB_TEST_CORE_HTTP_H
 #define DUT_ELAB_TEST_CORE_HTTP_H
 
+void start();
+
 #endif //DUT_ELAB_TEST_CORE_HTTP_H
