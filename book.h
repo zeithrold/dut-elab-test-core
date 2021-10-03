@@ -9,10 +9,8 @@
 
 using namespace std;
 
-namespace DutElab
-{
-    class Book
-    {
+namespace dut_elab {
+    class Book {
     public:
         int book_id;
         string name;

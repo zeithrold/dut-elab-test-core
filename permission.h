@@ -19,10 +19,8 @@
 #define ELAB_PERM_ADMIN_REMOVE_USER 1105
 
 using namespace std;
-namespace DutElab
-{
-    class PermissionGroup
-    {
+namespace dut_elab {
+    class PermissionGroup {
     public:
         int pid;
         string name;

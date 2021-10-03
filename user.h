@@ -11,10 +11,8 @@ using namespace std;
 
 typedef string encrypted_string;
 
-namespace DutElab
-{
-    class User
-    {
+namespace DutElab {
+    class User {
     public:
         int uid;
         string name;
