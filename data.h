@@ -3,7 +3,6 @@
 //
 #include <iostream>
 #include "extlib/configor/include/configor/json.hpp"
-#include "book.h"
 #include "database.h"
 #include "permission.h"
 
@@ -13,6 +12,20 @@ using namespace configor;
 typedef string encrypted_string;
 
 namespace dutelab {
+    class Book {
+    public:
+        int book_id;
+        string name;
+        string isbn;
+        string publisher;
+        long registered_at;
+        string registered_by;
+        int max_amount;
+        char** authors;
+    };
+
+    Book* query_book(string keyword);
+
     class User {
     public:
         int uid;
@@ -26,7 +39,14 @@ namespace dutelab {
         bool lend_book(int book_id);
         bool return_book(int book_id);
         bool extend_ddl(int book_id);
+
+        // Admin operation
         bool register_book(Book book);
+        bool add_book(int book_id);
+        bool del_book(int book_id);
+        bool remove_book(int book_id);
+        bool add_user(User usr);
+        bool remove_user(string user_uuid);
     };
 
     class HTTPAuthenticateInfo {
@@ -36,5 +56,6 @@ namespace dutelab {
     };
 
     HTTPAuthenticateInfo user_authenticate();
+    bool user_refresh(string access_key);
     User get_user(string access_key);
 }
