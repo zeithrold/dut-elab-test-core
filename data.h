@@ -2,9 +2,11 @@
 // Created by Zeithrold on 2021/10/1.
 //
 #include <iostream>
+#include <sqlite3.h>
 #include "extlib/configor/include/configor/json.hpp"
 #include "database.h"
 #include "permission.h"
+#define MAX_LEND_BOOK 30
 
 using namespace std;
 using namespace configor;
@@ -34,7 +36,7 @@ namespace dutelab {
         string email;
         encrypted_string password;
         string permission_group;
-        int lent_books[];
+        int lent_books[MAX_LEND_BOOK];
         bool check_permission(int permission);
         bool lend_book(int book_id);
         bool return_book(int book_id);
@@ -57,5 +59,6 @@ namespace dutelab {
 
     HTTPAuthenticateInfo user_authenticate();
     bool user_refresh(string access_key);
-    User get_user(string access_key);
+    User* get_user(string access_key);
+    User* get_user(sqlite3_stmt *stmt);
 }

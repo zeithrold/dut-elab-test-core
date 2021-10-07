@@ -2,4 +2,6 @@
 // Created by Zeithrold on 2021/10/1.
 //
 
-void start();
+namespace dutelab {
+    void start(int port);
+}
