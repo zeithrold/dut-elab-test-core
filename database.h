@@ -9,5 +9,6 @@ using namespace std;
 namespace dutelab {
     void open_database();
     void close_database();
-    sqlite3_stmt* query_user(string uuid);
+    bool query_email_exist(const string email);
+    sqlite3_stmt* query_user(const string email);
 }

@@ -10,14 +10,6 @@ using namespace dutelab;
 using namespace configor;
 
 namespace dutelab {
-
-    User* get_user(string access_key) {
-        sqlite3_stmt* stmt = query_user(access_key);
-        if (stmt == nullptr){
-            return nullptr;
-        }
-        return get_user(stmt);
-    }
     User* get_user(sqlite3_stmt *stmt) {
         string str_lent_books = (char *)sqlite3_column_text(stmt, 5);
         json arr_lent_books = json::parse(str_lent_books);
@@ -31,5 +23,21 @@ namespace dutelab {
             result->lent_books[i] = arr_lent_books.get<int>(i);
         }
         return result;
+    }
+
+    User* get_user(string email) {
+        sqlite3_stmt *stmt = query_user(email);
+        if (stmt == nullptr) {
+            return nullptr;
+        }
+        return get_user(stmt);
+    }
+
+    bool login(const string email, const string encrypted_password) {
+        User* usr = get_user(email);
+        if (usr == nullptr) {
+            return false;
+        }
+        return strcmp((char *)usr->password.data(), (char *)encrypted_password.data()) == 0;
     }
 }

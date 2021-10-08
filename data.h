@@ -11,8 +11,6 @@
 using namespace std;
 using namespace configor;
 
-typedef string encrypted_string;
-
 namespace dutelab {
     class Book {
     public:
@@ -34,7 +32,7 @@ namespace dutelab {
         string name;
         string uuid;
         string email;
-        encrypted_string password;
+        string password;
         string permission_group;
         int lent_books[MAX_LEND_BOOK];
         bool check_permission(int permission);
@@ -50,15 +48,7 @@ namespace dutelab {
         bool add_user(User usr);
         bool remove_user(string user_uuid);
     };
-
-    class HTTPAuthenticateInfo {
-    public:
-        string access_key;
-        int expire_at;
-    };
-
-    HTTPAuthenticateInfo user_authenticate();
-    bool user_refresh(string access_key);
-    User* get_user(string access_key);
+    User* get_user(string email);
     User* get_user(sqlite3_stmt *stmt);
+    bool login(const string email, const string encrypted_password);
 }
