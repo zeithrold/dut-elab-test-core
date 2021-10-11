@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <sstream>
+#include <iostream>
 #include <string>
 #include "database.h"
 
@@ -33,7 +34,7 @@ namespace dutelab {
     }
     sqlite3_stmt* query_user(const string email) {
         stringstream sql_sentence;
-        sql_sentence << "SELECT * FROM dut_user WHERE email='" << email << "'";
+        sql_sentence << "SELECT * FROM dut_user WHERE email='" << email << "';";
         string ss;
         sql_sentence >> ss;
         char* s = (char *)ss.data();
@@ -45,6 +46,43 @@ namespace dutelab {
             return nullptr;
         }
         return stmt;
+    }
+    sqlite3_stmt* query_book(const string keyword) {
+        stringstream sql_sentence;
+        sql_sentence << "SELECT * FROM dut_book WHERE name like %" << keyword << "%;";
+        string ss;
+        sql_sentence >> ss;
+        char* s = (char *)ss.data();
+        int result = sqlite3_prepare_v2(sql, s, -1, &stmt, 0);
+        if (result != SQLITE_OK) {
+            throw "SQLite QUERY failed.";
+        }
+        if (sqlite3_step(stmt) != SQLITE_ROW) {
+            return nullptr;
+        }
+        return stmt;
+    }
+    sqlite3_stmt* query_book(const int book_id) {
+        stringstream sql_sentence;
+        sql_sentence << "SELECT * FROM dut_book WHERE book_id=" << book_id << ";";
+        string ss;
+        sql_sentence >> ss;
+        char* s = (char *)ss.data();
+        int result = sqlite3_prepare_v2(sql, s, -1, &stmt, 0);
+        if (result != SQLITE_OK) {
+            throw "SQLite QUERY failed.";
+        }
+        if (sqlite3_step(stmt) != SQLITE_ROW) {
+            return nullptr;
+        }
+        return stmt;
+    }
+    bool lend_book(const int book_id) {
+        auto stmt = query_book(book_id);
+        if (sqlite3_step(stmt) != SQLITE_ROW) {
+            cout << "" <<;
+            return false;
+        }
     }
     bool query_email_exist(const string email) {
         sqlite3_stmt* stmt = query_user(email);
