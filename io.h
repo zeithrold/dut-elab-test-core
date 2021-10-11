@@ -13,5 +13,4 @@ namespace dutelab {
     string login();
     void logout();
     int menu();
-    void fatal(const string& reason);
 }

@@ -2,7 +2,6 @@
 // Created by Zeithrold on 2021/10/7.
 //
 #include "data.h"
-#include "database.h"
 #include "extlib/configor/include/configor/json.hpp"
 #include <cstring>
 #include <utility>
@@ -13,7 +12,20 @@
 using namespace dutelab;
 using namespace configor;
 
+void fatal(const string& reason) {
+    std::cout << "Fatal: " << reason << std::endl;
+    std::cout << "Press enter to retry." << std::endl;
+    getchar();
+}
+
 namespace dutelab {
+    void output_book(Book* target_book){
+        cout << "Here's your target." << endl;
+        cout << "Book ID:" << target_book->book_id <<endl;
+        cout << "Name: " << target_book->name << endl;
+        cout << "ISBN: " << target_book->isbn << endl;
+        cout << "Publisher: " << target_book->publisher << endl;
+    }
     User* get_user(sqlite3_stmt *stmt) {
         string str_lent_books = (char *)sqlite3_column_text(stmt, 5);
         json arr_lent_books = json::parse(str_lent_books);
@@ -68,7 +80,7 @@ namespace dutelab {
     Book* search_book(int book_id) {
         auto stmt = query_book(book_id);
         if (stmt == nullptr) return nullptr;
-        Book* tmp = new Book();
+        Book *tmp = new Book();
         tmp->book_id = sqlite3_column_int(stmt, 0);
         tmp->name = (char *) sqlite3_column_text(stmt, 1);
         tmp->isbn = (char *) sqlite3_column_text(stmt, 2);

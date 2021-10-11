@@ -20,7 +20,7 @@ int main() {
         if (email == "exit") {
             break;
         }
-        int menu_id = dutelab::menu();
+//        int menu_id = dutelab::menu();
     }
     dutelab::close_database();
 }

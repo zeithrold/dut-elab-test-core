@@ -2,15 +2,18 @@
 // Created by Zeithrold on 2021/10/1.
 //
 #include <iostream>
+#include <cstdio>
 #include <vector>
 #include <algorithm>
 #include <sqlite3.h>
 #include "extlib/configor/include/configor/json.hpp"
 #include "database.h"
-#include "io.h"
+#define MAXIMUM_LEND_BOOKS 30
 
 using namespace std;
 using namespace configor;
+
+void fatal(const string& reason);
 
 namespace dutelab {
     class Book {
@@ -25,10 +28,9 @@ namespace dutelab {
         int current_amount;
         vector<string> authors;
     };
-
     vector<Book *> search_book(string keyword);
     Book * search_book(int book_id);
-
+    void output_book(Book* target_book);
     class User {
     public:
         int uid;
@@ -39,31 +41,47 @@ namespace dutelab {
         string permission_group;
         vector<int> lent_books;
         bool lend_book(int book_id) {
-            if (this->lent_books.size() >= 30) {
+            if (this->lent_books.size() >= MAXIMUM_LEND_BOOKS) {
                 fatal("The amount of your lent books was on the maximum.");
                 return false;
             }
+            auto target_book = search_book(book_id);
             auto it = find(this->lent_books.begin(), this->lent_books.end(), book_id);
             if (it != this->lent_books.end()) {
                 fatal("You've already lent the book.");
                 return false;
             }
-            auto target_book = search_book(book_id);
             if (target_book == nullptr) {
                 fatal("Cannot find the book.");
                 return false;
             }
-            cout << "Here's your target." << endl;
-            cout << "Book ID:" << target_book->book_id <<endl;
-            cout << "Name: " << target_book->name << endl;
-            cout << "ISBN: " << target_book->isbn << endl;
-            cout << "Publisher: " << target_book->publisher << endl;
+            output_book(target_book);
+            cout << "Is it true? (yes to confirm, other to revoke)";
+            char *confirm = nullptr;
+            scanf("%s", confirm);
+            if (strcmp(confirm, "yes") != 0)
+                return false;
             this->lent_books.push_back(target_book->book_id);
-            return true;
+            return io_book(target_book->book_id, ELAB_BOOK_LEND);
         }
 
         bool return_book(int book_id) {
-
+            auto it = find(this->lent_books.begin(), this->lent_books.end(), book_id);
+            if (it == this->lent_books.end()) {
+                fatal("You haven't lent the book yet.");
+                return false;
+            }
+            auto target_book = search_book(book_id);
+            output_book(target_book);
+            cout << "Is it true? (yes to confirm, other to revoke)";
+            char *confirm = nullptr;
+            scanf("%s", confirm);
+            if (strcmp(confirm, "yes") != 0)
+                return false;
+            this->lent_books.erase(std::remove(
+                    this->lent_books.begin(), this->lent_books.end(), book_id), this->lent_books.end());
+//            this->lent_books.push_back(target_book->book_id);
+            return io_book(target_book->book_id, ELAB_BOOK_RETURN);
         }
 
         // Admin operation
@@ -74,6 +92,7 @@ namespace dutelab {
         bool add_user(User usr);
         bool remove_user(string user_uuid);
     };
+
     User* get_user(string email);
     User* get_user(sqlite3_stmt *stmt);
     bool login(const string& email, const string& encrypted_password);

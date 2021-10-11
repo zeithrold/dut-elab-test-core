@@ -75,7 +75,10 @@ namespace dutelab {
                 std::cout << i << endl;
             }
         }
-
         PRINT_STAR;
+        std::cout << "Choose your select > ";
+        int result = 0;
+        scanf("%d", &result);
+        return result;
     }
 }
