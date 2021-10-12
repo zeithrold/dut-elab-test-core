@@ -24,8 +24,8 @@ namespace dutelab {
         string publisher;
         long registered_at;
         string registered_by;
-        int max_amount;
-        int current_amount;
+        unsigned int max_amount;
+        unsigned int current_amount;
         vector<string> authors;
     };
     vector<Book *> search_book(string keyword);
@@ -62,7 +62,7 @@ namespace dutelab {
             if (strcmp(confirm, "yes") != 0)
                 return false;
             this->lent_books.push_back(target_book->book_id);
-            return io_book(target_book->book_id, ELAB_BOOK_LEND);
+            return db_io_book(target_book->book_id, ELAB_BOOK_LEND);
         }
 
         bool return_book(int book_id) {
@@ -80,17 +80,30 @@ namespace dutelab {
                 return false;
             this->lent_books.erase(std::remove(
                     this->lent_books.begin(), this->lent_books.end(), book_id), this->lent_books.end());
-//            this->lent_books.push_back(target_book->book_id);
-            return io_book(target_book->book_id, ELAB_BOOK_RETURN);
+            return db_io_book(target_book->book_id, ELAB_BOOK_RETURN);
         }
 
         // Admin operation
-        bool register_book(Book book);
-        bool add_book(int book_id);
-        bool del_book(int book_id);
-        bool remove_book(int book_id);
-        bool add_user(User usr);
-        bool remove_user(string user_uuid);
+        bool register_book(Book* book) {
+            return db_register_book(
+                    book->book_id,
+                    book->name,
+                    book->isbn,
+                    book->publisher,
+                    book->max_amount,
+                    book->authors,
+                    this->name
+                    );
+        }
+        bool add_book(int book_id, int amount) {
+            return db_add_book(book_id, amount);
+        }
+        bool del_book(int book_id, int amount) {
+            return db_del_book(book_id, amount);
+        }
+        bool remove_book(int book_id) {
+            return db_remove_book(book_id);
+        }
     };
 
     User* get_user(string email);

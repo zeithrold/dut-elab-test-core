@@ -43,7 +43,7 @@ namespace dutelab {
     }
 
     User* get_user(string email) {
-        sqlite3_stmt *stmt = query_user(std::move(email));
+        sqlite3_stmt *stmt = db_query_user(std::move(email));
         if (stmt == nullptr) return nullptr;
         return get_user(stmt);
     }
@@ -56,7 +56,7 @@ namespace dutelab {
 
     vector<Book *> search_book(string keyword) {
         vector<Book*> arr;
-        sqlite3_stmt* stmt = query_book(std::move(keyword));
+        sqlite3_stmt* stmt = db_query_book(std::move(keyword));
         if (stmt == nullptr) return arr;
         do {
             Book* tmp = new Book();
@@ -78,7 +78,7 @@ namespace dutelab {
         return arr;
     }
     Book* search_book(int book_id) {
-        auto stmt = query_book(book_id);
+        auto stmt = db_query_book(book_id);
         if (stmt == nullptr) return nullptr;
         Book *tmp = new Book();
         tmp->book_id = sqlite3_column_int(stmt, 0);

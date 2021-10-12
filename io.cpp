@@ -35,7 +35,7 @@ namespace dutelab {
         if (email[0] == '0') {
             return "exit";
         }
-        if (!dutelab::query_email_exist(email)) {
+        if (!dutelab::db_query_email_exist(email)) {
             fatal("Email not exists in the database, try again.");
             return "";
             // TODO: clear std.
