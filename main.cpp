@@ -20,7 +20,8 @@ int main() {
         if (email == "exit") {
             break;
         }
-//        int menu_id = dutelab::menu();
+        int selected_section = dutelab::menu(email);
+        dutelab::section(selected_section, email);
     }
     dutelab::close_database();
 }

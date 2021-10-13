@@ -29,7 +29,7 @@ namespace dutelab {
     }
     string login(){
         std::cout << "Login(enter your email address, 0 to exit)" << std::endl;
-        char *email = nullptr;
+        char email[40];
         printf("email > ");
         scanf("%s", email);
         if (email[0] == '0') {
@@ -38,7 +38,6 @@ namespace dutelab {
         if (!dutelab::db_query_email_exist(email)) {
             fatal("Email not exists in the database, try again.");
             return "";
-            // TODO: clear std.
         }
         char *password = getpass("password (hidden)> ");
         bool login_result = dutelab::login(email, dutelab::encrypt(password));
@@ -80,5 +79,77 @@ namespace dutelab {
         int result = 0;
         scanf("%d", &result);
         return result;
+    }
+    void menu_query_book() {
+        std::cout << "Type a keyword to search book." << endl;
+        char target_keyword[40];
+        printf("type a keyword > ");
+        scanf("%s", target_keyword);
+        if (target_keyword[0] == '\0') {
+            dutelab::fatal("You didn't type a keyword.");
+        }
+        auto result = dutelab::search_book(target_keyword);
+        if (result.empty()) {
+            std::cout << "No matches found!" << endl;
+            return;
+        }
+        PRINT_STAR;
+        std::cout << "Here's result for you." << endl;
+        for (const auto &item : result) {
+            PRINT_STAR;
+            std::cout << "Book ID: " << item->book_id << endl;
+            std::cout << "Name: " << item->name << endl;
+            std::cout << "ISBN: " << item->isbn << endl;
+            std::cout << "Publisher: " << item->publisher << endl;
+            std::cout << "Max Amount: " << item->max_amount << endl;
+            std::cout << "Current Amount: " << item->current_amount << endl;
+            std::cout << "Authors: " << endl;
+            for (const auto &author : item->authors) {
+                std::cout << "\t" << author << endl;
+            }
+            PRINT_STAR;
+        }
+        PRINT_STAR;
+    }
+    void menu_borrow_book(User* usr) {
+        std::cout << "Type a book id to lock book." << endl;
+        int target_book_id;
+        printf("type a book id > ");
+        scanf("%d", &target_book_id);
+        usr->lend_book(target_book_id);
+    }
+    void menu_return_book(User* usr) {
+        std::cout << "Type a book id to lock book." << endl;
+        int target_book_id;
+        printf("type a book id > ");
+        scanf("%d", &target_book_id);
+        usr->return_book(target_book_id);
+    }
+    void menu_show_usr_info(User* usr) {
+        std::cout << "Here's your info." << endl;
+        std::cout << "UID: " << usr->uid << endl;
+        std::cout << "Name: " << usr->name << endl;
+        std::cout << "Email: " << usr->email << endl;
+        std::cout << "Permission Group: " << usr->permission_group << endl;
+        std::cout << "Lent Books (stored by book id)" << endl;
+        for (const auto &item : usr->lent_books) {
+            std::cout << "\t" << item << endl;
+        }
+    }
+    void section(int selected_section, string email) {
+        auto usr = get_user(email);
+        switch (selected_section) {
+            case 1:
+                menu_query_book();
+            case 2:
+                menu_borrow_book(usr);
+            case 3:
+                menu_return_book(usr);
+            case 4:
+                menu_show_usr_info(usr);
+            //TODO: Admin section
+            default:
+                std::cout << "No matches" << endl;
+        }
     }
 }

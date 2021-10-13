@@ -46,13 +46,13 @@ namespace dutelab {
                 return false;
             }
             auto target_book = search_book(book_id);
+            if (target_book == nullptr) {
+                fatal("Cannot find the book.");
+                return false;
+            }
             auto it = find(this->lent_books.begin(), this->lent_books.end(), book_id);
             if (it != this->lent_books.end()) {
                 fatal("You've already lent the book.");
-                return false;
-            }
-            if (target_book == nullptr) {
-                fatal("Cannot find the book.");
                 return false;
             }
             output_book(target_book);
@@ -84,7 +84,10 @@ namespace dutelab {
         }
 
         // Admin operation
-        bool register_book(Book* book) {
+        bool register_book(Book* book) const {
+            if (this->permission_group != "admin") {
+                return false;
+            }
             return db_register_book(
                     book->book_id,
                     book->name,
@@ -95,13 +98,22 @@ namespace dutelab {
                     this->name
                     );
         }
-        bool add_book(int book_id, int amount) {
+        bool add_book(int book_id, int amount) const {
+            if (this->permission_group != "admin") {
+                return false;
+            }
             return db_add_book(book_id, amount);
         }
-        bool del_book(int book_id, int amount) {
+        bool del_book(int book_id, int amount) const {
+            if (this->permission_group != "admin") {
+                return false;
+            }
             return db_del_book(book_id, amount);
         }
-        bool remove_book(int book_id) {
+        bool remove_book(int book_id)  const {
+            if (this->permission_group != "admin") {
+                return false;
+            }
             return db_remove_book(book_id);
         }
     };
