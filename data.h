@@ -35,7 +35,6 @@ namespace dutelab {
     public:
         int uid;
         string name;
-        string uuid;
         string email;
         string password;
         string permission_group;

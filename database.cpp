@@ -9,6 +9,11 @@
 #include <ctime>
 #include "database.h"
 #include "extlib/configor/include/configor/json.hpp"
+#if defined(_WIN32)
+#include <objbase.h>
+#elif defined(__linux__)
+#include <uuid/uuid.h>
+#endif
 
 using namespace std;
 using namespace configor;
@@ -186,6 +191,7 @@ namespace dutelab {
         string sql_sentence;
         stream << "INSERT INTO dut_book ";
         stream << "(book_id, name, isbn, publisher, max_amount, current_amount, authors, registered_by, registered_at) ";
+        stream << "VALUES (";
         stream << book_id << ",";
         stream << isbn << ",";
         stream << publisher << ",";
@@ -193,13 +199,49 @@ namespace dutelab {
         stream << max_amount << ",";
         stream << arr_authors.dump() << ",";
         stream << registered_by << ",";
-        stream << time(nullptr) << ";";
+        stream << time(nullptr) << ");";
         stream >> sql_sentence;
         int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
         if (result != SQLITE_OK) {
             return false;
         }
         sqlite3_finalize(stmt);
+        return true;
+    }
+    bool db_add_user(int uid,
+                     const string& name,
+                     const string& email,
+                     const string& encrypted_password,
+                     bool is_admin) {
+        stringstream stream;
+        string sql_sentence;
+        stream << "INSERT INTO dut_user ";
+        stream << "(uid, name, email, password, permission_group) ";
+        stream << "VALUES (";
+        stream << uid << ",";
+        stream << name << ",";
+        stream << email << ",";
+        stream << encrypted_password << ",";
+        stream << (is_admin ? "admin" : "user") << ");";
+        stream >> sql_sentence;
+        int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
+        if (result != SQLITE_OK) {
+            return false;
+        }
+        sqlite3_finalize(stmt);
+        return true;
+    }
+    bool db_del_user(string email) {
+        stringstream stream;
+        string sql_sentence;
+        stream << "DELETE FROM dut_user WHERE email='" << email << "';";
+        stream >> sql_sentence;
+        int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
+        if (result != SQLITE_OK) {
+            return false;
+        }
+        sqlite3_finalize(stmt);
+        return true;
     }
 }
 

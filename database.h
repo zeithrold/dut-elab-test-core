@@ -25,6 +25,12 @@ namespace dutelab {
     bool db_add_book(int book_id, unsigned int amount);
     bool db_del_book(int book_id, unsigned int amount);
     bool db_remove_book(int book_id);
+    bool db_add_user(int uid,
+                     const string& name,
+                     const string& email,
+                     const string& encrypted_password,
+                     bool is_admin);
+    bool db_del_user(string email);
     sqlite3_stmt* db_query_user(const string& email);
     sqlite3_stmt* db_query_book(const string& keyword);
     sqlite3_stmt* db_query_book(int book_id);

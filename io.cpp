@@ -28,13 +28,42 @@ namespace dutelab {
         std::cout << "Written by Zeithrold, open-sourced at GitHub under BSD-3 License." << std::endl;
         PRINT_STAR;
     }
+    string reg() {
+        int uid;
+        char *name;
+        char *email;
+        char *password;
+        printf("enter uid > ");
+        scanf("%d", &uid);
+        printf("enter name > ");
+        scanf("%s", name);
+        printf("enter email > ");
+        scanf("%s", email);
+        if (get_user(email) != nullptr) {
+            dutelab::fatal("User exists.");
+            return "";
+        }
+        password = getpass("password (hidden)> ");
+        password = encrypt(password);
+        db_add_user(
+                uid,
+                name,
+                email,
+                password,
+                false
+        );
+        return email;
+    }
     string login(){
-        std::cout << "Login(enter your email address, 0 to exit)" << std::endl;
+        std::cout << "Login(enter your email address, reg to register, 0 to exit)" << std::endl;
         char email[40];
         printf("email > ");
         scanf("%s", email);
         if (email[0] == '0') {
             return "exit";
+        }
+        if (strcmp(email, "reg") == 0) {
+            return reg();
         }
         if (!dutelab::db_query_email_exist(email)) {
             fatal("Email not exists in the database, try again.");
@@ -140,6 +169,7 @@ namespace dutelab {
     void menu_admin_reg_book(User * usr) {
         if (usr->permission_group != "admin") {
             dutelab::fatal("You don't have permission to access the menu.");
+            return;
         }
         int book_id;
         char *name = nullptr;
@@ -187,6 +217,10 @@ namespace dutelab {
                 );
     }
     void menu_admin_add_book(User *usr) {
+        if (usr->permission_group != "admin") {
+            dutelab::fatal("You don't have permission to access the menu.");
+            return;
+        }
         std::cout << "Type a book id to lock book." << endl;
         int target_book_id;
         printf("type a book id > ");
@@ -201,6 +235,10 @@ namespace dutelab {
         usr->add_book(target_book_id, add_amount);
     }
     void menu_admin_del_book(User *usr) {
+        if (usr->permission_group != "admin") {
+            dutelab::fatal("You don't have permission to access the menu.");
+            return;
+        }
         std::cout << "Type a book id to lock book." << endl;
         int target_book_id;
         printf("type a book id > ");
@@ -215,10 +253,52 @@ namespace dutelab {
         usr->del_book(target_book_id, add_amount);
     }
     void menu_admin_add_user(User *usr) {
-
+        if (usr->permission_group != "admin") {
+            dutelab::fatal("You don't have permission to access the menu.");
+            return;
+        }
+        int uid;
+        char *name;
+        char *email;
+        char *password;
+        char *is_admin;
+        bool admin;
+        printf("enter uid > ");
+        scanf("%d", &uid);
+        printf("enter name > ");
+        scanf("%s", name);
+        printf("enter email > ");
+        scanf("%s", email);
+        if (get_user(email) != nullptr) {
+            dutelab::fatal("User exists.");
+            return;
+        }
+        password = getpass("password (hidden)> ");
+        password = encrypt(password);
+        printf("is it an admin? (yes to yes, other to no) > ");
+        scanf("%s", is_admin);
+        admin = !strcmp(is_admin, "yes");
+        db_add_user(
+                uid,
+                name,
+                email,
+                password,
+                admin
+                );
     }
     void menu_admin_del_user(User *usr) {
-
+        if (usr->permission_group != "admin") {
+            dutelab::fatal("You don't have permission to access the menu.");
+            return;
+        }
+        char *email = nullptr;
+        printf("type email to remove > ");
+        scanf("%s", email);
+        if (get_user(email) == nullptr) {
+            dutelab::fatal("No match user found.");
+            return;
+        }
+        db_del_user(email);
     }
     void section(int selected_section, string email) {
         auto usr = get_user(email);
