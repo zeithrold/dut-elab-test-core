@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <string>
+#include <ctime>
 #include "database.h"
 #include "extlib/configor/include/configor/json.hpp"
 
@@ -170,6 +171,35 @@ namespace dutelab {
         int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
         sqlite3_finalize(stmt);
         return result == SQLITE_OK;
+    }
+    bool db_register_book(
+            int book_id,
+            const string& name,
+            const string& isbn,
+            const string& publisher,
+            int max_amount,
+            const vector<string>& authors,
+            const string& registered_by
+    ) {
+        json arr_authors = authors;
+        stringstream stream;
+        string sql_sentence;
+        stream << "INSERT INTO dut_book ";
+        stream << "(book_id, name, isbn, publisher, max_amount, current_amount, authors, registered_by, registered_at) ";
+        stream << book_id << ",";
+        stream << isbn << ",";
+        stream << publisher << ",";
+        stream << max_amount << ",";
+        stream << max_amount << ",";
+        stream << arr_authors.dump() << ",";
+        stream << registered_by << ",";
+        stream << time(nullptr) << ";";
+        stream >> sql_sentence;
+        int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
+        if (result != SQLITE_OK) {
+            return false;
+        }
+        sqlite3_finalize(stmt);
     }
 }
 

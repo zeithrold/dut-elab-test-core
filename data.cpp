@@ -67,7 +67,8 @@ namespace dutelab {
             tmp->registered_at = sqlite3_column_int64(stmt, 4);
             tmp->registered_by = (char *) sqlite3_column_text(stmt, 5);
             tmp->max_amount = sqlite3_column_int(stmt, 6);
-            string authors_str = (char *) sqlite3_column_text(stmt, 7);
+            tmp->current_amount = sqlite3_column_int(stmt, 7);
+            string authors_str = (char *) sqlite3_column_text(stmt, 8);
             json authors_arr = json::parse(authors_str);
             for (auto iter = authors_arr.begin(); iter != authors_arr.end(); iter++) {
                 tmp->authors.push_back(iter.value());

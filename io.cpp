@@ -8,6 +8,7 @@
 #include "encrypt.h"
 #include <cstdio>
 #include <iostream>
+#include <ctime>
 #include <cstring>
 #include <unistd.h>
 #define PRINT_STAR std::cout << "******************************************" << std::endl
@@ -136,6 +137,89 @@ namespace dutelab {
             std::cout << "\t" << item << endl;
         }
     }
+    void menu_admin_reg_book(User * usr) {
+        if (usr->permission_group != "admin") {
+            dutelab::fatal("You don't have permission to access the menu.");
+        }
+        int book_id;
+        char *name = nullptr;
+        char *isbn = nullptr;
+        char *publisher = nullptr;
+        long registered_at = time(0);
+        int max_amount = 1;
+        string registered_by = usr->name;
+        vector<string> authors;
+        while(true) {
+            printf("enter book's id > ");
+            scanf("%d", &book_id);
+            if (search_book(book_id) != nullptr) {
+                dutelab::fatal("Duplicate book id, try again.");
+                continue;
+            }
+            break; // I'm hurry!!!!!!
+        }
+        printf("enter book's name > ");
+        scanf("%s", name);
+        printf("enter book's isbn > ");
+        scanf("%s", isbn);
+        printf("enter book's publisher > ");
+        scanf("%s", publisher);
+        printf("enter book's maximum amount > ");
+        scanf("%d", &max_amount);
+        printf("Now, enter authors of the book.\n");
+        while (true) {
+            char single_author[40];
+            printf("enter book's author by line, empty to end > ");
+            scanf("%s", single_author);
+            if (single_author[0] == '\0') {
+                break;
+            }
+            authors.emplace_back(single_author);
+        }
+        dutelab::db_register_book(
+                book_id,
+                name,
+                isbn,
+                publisher,
+                max_amount,
+                authors,
+                usr->name
+                );
+    }
+    void menu_admin_add_book(User *usr) {
+        std::cout << "Type a book id to lock book." << endl;
+        int target_book_id;
+        printf("type a book id > ");
+        scanf("%d", &target_book_id);
+        if (search_book(target_book_id) == nullptr) {
+            dutelab::fatal("No match book found");
+            return;
+        }
+        unsigned int add_amount = 0;
+        printf("type add amount > ");
+        scanf("%d", &add_amount);
+        usr->add_book(target_book_id, add_amount);
+    }
+    void menu_admin_del_book(User *usr) {
+        std::cout << "Type a book id to lock book." << endl;
+        int target_book_id;
+        printf("type a book id > ");
+        scanf("%d", &target_book_id);
+        if (search_book(target_book_id) == nullptr) {
+            dutelab::fatal("No match book found");
+            return;
+        }
+        unsigned int add_amount = 0;
+        printf("type del amount > ");
+        scanf("%d", &add_amount);
+        usr->del_book(target_book_id, add_amount);
+    }
+    void menu_admin_add_user(User *usr) {
+
+    }
+    void menu_admin_del_user(User *usr) {
+
+    }
     void section(int selected_section, string email) {
         auto usr = get_user(email);
         switch (selected_section) {
@@ -148,6 +232,16 @@ namespace dutelab {
             case 4:
                 menu_show_usr_info(usr);
             //TODO: Admin section
+            case 11:
+                menu_admin_reg_book(usr);
+            case 12:
+                menu_admin_add_book(usr);
+            case 13:
+                menu_admin_del_book(usr);
+            case 14:
+                menu_admin_add_user(usr);
+            case 15:
+                menu_admin_del_user(usr);
             default:
                 std::cout << "No matches" << endl;
         }

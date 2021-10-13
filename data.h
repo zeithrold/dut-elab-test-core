@@ -98,13 +98,13 @@ namespace dutelab {
                     this->name
                     );
         }
-        bool add_book(int book_id, int amount) const {
+        bool add_book(int book_id, unsigned int amount) const {
             if (this->permission_group != "admin") {
                 return false;
             }
             return db_add_book(book_id, amount);
         }
-        bool del_book(int book_id, int amount) const {
+        bool del_book(int book_id, unsigned int amount) const {
             if (this->permission_group != "admin") {
                 return false;
             }

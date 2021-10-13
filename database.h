@@ -15,12 +15,12 @@ namespace dutelab {
     bool db_io_book(int book_id, int type);
     bool db_register_book(
             int book_id,
-            string name,
-            string isbn,
-            string publisher,
+            const string& name,
+            const string& isbn,
+            const string& publisher,
             int max_amount,
-            vector<string> authors,
-            string registered_by
+            const vector<string>& authors,
+            const string& registered_by
             );
     bool db_add_book(int book_id, unsigned int amount);
     bool db_del_book(int book_id, unsigned int amount);
