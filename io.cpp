@@ -82,7 +82,8 @@ namespace dutelab {
                 "1. Query Book",
                 "2. Borrow Book",
                 "3. Extend DDL",
-                "4. My Info"
+                "4. My Info",
+                "-1. Quit"
         };
         const string admin_menu_title[] = {
                 "11. Register Book",
@@ -172,11 +173,15 @@ namespace dutelab {
             return;
         }
         int book_id;
-        char *name = nullptr;
-        char *isbn = nullptr;
-        char *publisher = nullptr;
+        std::string name;
+        std::string isbn;
+        std::string publisher;
+//        char isbn[40] = {0};
+//        char publisher[4] = {0};
         long registered_at = time(0);
         int max_amount = 1;
+        std::string txt_max_amount;
+//        char txt_max_amount[40] = {0};
         string registered_by = usr->name;
         vector<string> authors;
         while(true) {
@@ -188,20 +193,22 @@ namespace dutelab {
             }
             break; // I'm hurry!!!!!!
         }
+        cin.ignore();
         printf("enter book's name > ");
-        scanf("%s", name);
+        std::getline(std::cin, name);
         printf("enter book's isbn > ");
-        scanf("%s", isbn);
+        std::getline(std::cin, isbn);
         printf("enter book's publisher > ");
-        scanf("%s", publisher);
+        std::getline(std::cin, publisher);
         printf("enter book's maximum amount > ");
-        scanf("%d", &max_amount);
+        std::getline(std::cin, txt_max_amount);
+        max_amount = atoi((char *)txt_max_amount.data());
         printf("Now, enter authors of the book.\n");
         while (true) {
-            char single_author[40];
+            std::string single_author;
             printf("enter book's author by line, empty to end > ");
-            scanf("%s", single_author);
-            if (single_author[0] == '\0') {
+            std::getline(std::cin, single_author);
+            if (single_author == "") {
                 break;
             }
             authors.emplace_back(single_author);
@@ -265,10 +272,13 @@ namespace dutelab {
         bool admin;
         printf("enter uid > ");
         scanf("%d", &uid);
+        fflush(stdin);
         printf("enter name > ");
-        scanf("%s", name);
+        cin.getline(name, 40);
+        fflush(stdin);
         printf("enter email > ");
-        scanf("%s", email);
+        cin.getline(email, 40);
+        fflush(stdin);
         if (get_user(email) != nullptr) {
             dutelab::fatal("User exists.");
             return;
@@ -276,7 +286,7 @@ namespace dutelab {
         password = getpass("password (hidden)> ");
         password = encrypt(password);
         printf("is it an admin? (yes to yes, other to no) > ");
-        scanf("%s", is_admin);
+        cin.getline(is_admin, 40);
         admin = !strcmp(is_admin, "yes");
         db_add_user(
                 uid,
@@ -300,30 +310,42 @@ namespace dutelab {
         }
         db_del_user(email);
     }
-    void section(int selected_section, string email) {
+    bool section(int selected_section, string email) {
         auto usr = get_user(email);
         switch (selected_section) {
             case 1:
                 menu_query_book();
+                return false;
             case 2:
                 menu_borrow_book(usr);
+                return false;
             case 3:
                 menu_return_book(usr);
+                return false;
             case 4:
                 menu_show_usr_info(usr);
-            //TODO: Admin section
+                return false;
             case 11:
                 menu_admin_reg_book(usr);
+                return false;
             case 12:
                 menu_admin_add_book(usr);
+                return false;
             case 13:
                 menu_admin_del_book(usr);
+                return false;
             case 14:
                 menu_admin_add_user(usr);
+                return false;
             case 15:
                 menu_admin_del_user(usr);
+                return false;
+            case -1:
+                std::cout << "Bye" << endl;
+                return true;
             default:
                 std::cout << "No matches" << endl;
+                return false;
         }
     }
 }

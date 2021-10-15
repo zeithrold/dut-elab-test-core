@@ -27,13 +27,14 @@ namespace dutelab {
         cout << "Publisher: " << target_book->publisher << endl;
     }
     User* get_user(sqlite3_stmt *stmt) {
-        string str_lent_books = (char *)sqlite3_column_text(stmt, 4);
-        json arr_lent_books = json::parse(str_lent_books);
         User* result = new User();
         result->uid = sqlite3_column_int(stmt, 0);
         result->name = (char *)sqlite3_column_text(stmt, 1);
         result->email = (char *)sqlite3_column_text(stmt, 2);
         result->password = (char *)sqlite3_column_text(stmt, 3);
+        result->permission_group = (char *)sqlite3_column_text(stmt, 4);
+        string str_lent_books = (char *)sqlite3_column_text(stmt, 5);
+        json arr_lent_books = json::parse(str_lent_books);
         for (auto iter = arr_lent_books.begin(); iter != arr_lent_books.end(); iter++) {
             result->lent_books.push_back(iter.value());
         }

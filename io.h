@@ -13,5 +13,5 @@ namespace dutelab {
     string login();
     void logout();
     int menu(string email);
-    void section(int selected_section, string email);
+    bool section(int selected_section, string email);
 }

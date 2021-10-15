@@ -10,9 +10,10 @@ using namespace std;
 int main() {
     std::cout << "Hello, World!" << std::endl;
     dutelab::open_database();
+    bool is_interrupt = false;
+    dutelab::start();
     while(true) {
         // LOGIN PHASE
-        dutelab::start();
         string email = dutelab::login();
         if (email.empty()) {
             continue;
@@ -20,8 +21,11 @@ int main() {
         if (email == "exit") {
             break;
         }
-        int selected_section = dutelab::menu(email);
-        dutelab::section(selected_section, email);
+        while (!is_interrupt) {
+            int selected_section = dutelab::menu(email);
+            is_interrupt = dutelab::section(selected_section, email);
+        }
+        break;
     }
     dutelab::close_database();
 }

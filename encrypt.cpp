@@ -4,23 +4,26 @@
 
 #include "encrypt.h"
 #include <string>
+#include <sstream>
 
 using namespace std;
 
 namespace dutelab {
     char* encrypt(char* origin) {
-        int length = strlen(origin);
-        char result[length + 1];
+        unsigned long length = strlen(origin);
+        stringstream stream;
+        string result;
         for (int i = 0; i < length; i++) {
-            result[i] = origin[i] + 10;
+            stream << (char)(origin[i] + 5);
         }
-        return result;
+        stream >> result;
+        return (char *)result.data();
     }
     char* decrypt(char* origin) {
         int length = strlen(origin);
         char result[length + 1];
         for (int i = 0; i < length; i++) {
-            result[i] = origin[i] - 10;
+            result[i] = origin[i] - 5;
         }
         return result;
     }

@@ -32,9 +32,9 @@ namespace dutelab {
                 SQLITE_OPEN_NOMUTEX |
                 SQLITE_OPEN_SHAREDCACHE, nullptr);
         if (open_result == SQLITE_OK) {
-            printf("Successfully opened SQLite Database.");
+            printf("Successfully opened SQLite Database.\n");
         } else {
-            printf("Failed while opening Database.");
+            printf("Failed while opening Database.\n");
             exit(-1);
         }
     }
@@ -59,7 +59,7 @@ namespace dutelab {
         return stmt;
     }
     sqlite3_stmt* db_query_book(const string& keyword) {
-        string sql_sentence = "SELECT * FROM dut_book WHERE name like %" + keyword + "%;";
+        string sql_sentence = "SELECT * FROM dut_book WHERE name like '%" + keyword + "%';";
         int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
         if (result != SQLITE_OK) {
             throw "SQLite QUERY failed.";
@@ -189,18 +189,19 @@ namespace dutelab {
         json arr_authors = authors;
         stringstream stream;
         string sql_sentence;
+        string str_authors = arr_authors.dump();
         stream << "INSERT INTO dut_book ";
         stream << "(book_id, name, isbn, publisher, max_amount, current_amount, authors, registered_by, registered_at) ";
         stream << "VALUES (";
         stream << book_id << ",";
-        stream << isbn << ",";
-        stream << publisher << ",";
+        stream << "'" << isbn << "'" << ",";
+        stream << "'" << publisher << "'" <<",";
         stream << max_amount << ",";
         stream << max_amount << ",";
-        stream << arr_authors.dump() << ",";
-        stream << registered_by << ",";
+        stream << "'" << str_authors << "'" << ",";
+        stream << "'" << registered_by << "'" << ",";
         stream << time(nullptr) << ");";
-        stream >> sql_sentence;
+        sql_sentence = stream.str();
         int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
         if (result != SQLITE_OK) {
             return false;
@@ -216,13 +217,14 @@ namespace dutelab {
         stringstream stream;
         string sql_sentence;
         stream << "INSERT INTO dut_user ";
-        stream << "(uid, name, email, password, permission_group) ";
+        stream << "(uid, name, email, password, permission_group, lent_books) ";
         stream << "VALUES (";
-        stream << uid << ",";
-        stream << name << ",";
-        stream << email << ",";
-        stream << encrypted_password << ",";
-        stream << (is_admin ? "admin" : "user") << ");";
+        stream << uid << ","; // INT
+        stream << "'" << name << "'" << ","; // TEXT
+        stream << "'" << email << "'" << ","; // TEXT
+        stream << "'" << encrypted_password << "'" << ","; // TEXT
+        stream << "'" << (is_admin ? "admin" : "user") << "'" << ",";
+        stream << "'[]');";
         stream >> sql_sentence;
         int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
         if (result != SQLITE_OK) {
