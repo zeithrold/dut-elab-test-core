@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 #include <string>
 #include <ctime>
 #include "database.h"
@@ -23,7 +24,12 @@ sqlite3 *sql;
 const char *path = "./data.db";
 sqlite3_stmt *stmt = nullptr;
 
+int callback(void *data, int argc, char **argv, char **azColName) {return 0;}
+
 namespace dutelab {
+    void remove_reverse_slash(string* target) {
+        target->erase(remove(target->begin(), target->end(), '\\'), target->end());
+    }
     void open_database() {
         // Just a default sqlite3 opening statement.
         int open_result = sqlite3_open_v2(
@@ -43,6 +49,7 @@ namespace dutelab {
         sqlite3_close_v2(sql);
     }
     sqlite3_stmt* db_query_user(const string& email) {
+        sqlite3_stmt *stmt = nullptr;
         // For doubt concerning `stringstream`:
         // The SQL statement is dynamic, to merge string, `stringstream` is essential.
         string sql_sentence =
@@ -80,29 +87,47 @@ namespace dutelab {
         }
         return stmt;
     }
-    bool db_io_book(const int book_id, int type) {
-        auto stmt = db_query_book(book_id);
-        if (sqlite3_step(stmt) != SQLITE_ROW) {
+    bool db_io_book(const int book_id, const int type) {
+        auto query_stmt = db_query_book(book_id);
+        if (query_stmt == nullptr) {
             cout << "Cannot find the target book." << endl;
             return false;
         }
-        sqlite3_finalize(stmt);
+        sqlite3_finalize(query_stmt);
+        auto stmt = db_query_book(book_id);
         int current_amount = sqlite3_column_int(stmt, 7);
-        int target_amount = type == ELAB_BOOK_LEND ? current_amount - 1 : current_amount + 1;
+        int target_amount;
+        if (type == ELAB_BOOK_LEND) {
+            target_amount = current_amount - 1;
+        } else {
+            target_amount = current_amount + 1;
+        }
+        if (target_amount < 0) {
+            cout << "You don't have enough book to borrow." << endl;
+            return false;
+        }
         string sql_sentence =
             "UPDATE dut_book SET current_amount=" +
             to_string(target_amount) + " " +
             "WHERE book_id=" +
             to_string(book_id) + ";";
-        auto result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
-        sqlite3_finalize(stmt);
-        return result == SQLITE_OK;
+        sqlite3_exec(sql, (char *)sql_sentence.data(), nullptr, nullptr, nullptr);
+        return true;
     }
     bool db_query_email_exist(const string& email) {
         auto stmt = db_query_user(email);
         bool result = stmt != nullptr;
         sqlite3_finalize(stmt);
         return result;
+    }
+    bool db_update_user_lent_books(const string& email, const string& lent_books) {
+        string sql_sentence =
+                "UPDATE dut_user SET lent_books='" +
+                lent_books +
+                "' WHERE email='" +
+                email + "';";
+        sqlite3_exec(sql, (char *)sql_sentence.data(), callback,  nullptr, nullptr);
+        return true;
     }
     bool db_remove_book(int book_id) {
         if (db_query_book(book_id) == nullptr) {
@@ -119,9 +144,9 @@ namespace dutelab {
         sqlite3_finalize(stmt);
         sql_sentence.clear();
         sql_sentence =
-            "SELECT * FROM dut_user WHERE lent_books like %" +
+            "SELECT * FROM dut_user WHERE lent_books like '%" +
             to_string(book_id) +
-            "% ;";
+            "%' ;";
         result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
         if (result != SQLITE_OK) {
             return false;
@@ -148,14 +173,15 @@ namespace dutelab {
         }
         int before_max_book = sqlite3_column_int(target_book, 6);
         int target_max_book = before_max_book + amount;
+        int current_book = sqlite3_column_int(target_book, 7);
         string sql_sentence =
             "UPDATE dut_book SET max_amount=" +
-            to_string(target_max_book) + " " +
+            to_string(target_max_book) + ", " +
+            "current_amount=" + to_string(current_book + amount) + " " +
             "WHERE book_id=" +
             to_string(book_id) + ";";
-        int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
-        sqlite3_finalize(stmt);
-        return result == SQLITE_OK;
+        sqlite3_exec(sql, (char *)sql_sentence.data(), nullptr, nullptr, nullptr);
+        return true;
     }
     bool db_del_book(int book_id, unsigned int amount) {
         auto target_book = db_query_book(book_id);
@@ -165,17 +191,18 @@ namespace dutelab {
         int before_max_book = sqlite3_column_int(target_book, 6);
         int target_max_book = before_max_book - amount;
         int current_book = sqlite3_column_int(stmt, 7);
-        if (current_book > target_max_book) {
+        if ((current_book - amount) < 0) {
             return false;
         }
         string sql_sentence =
                 "UPDATE dut_book SET max_amount=" +
-                to_string(target_max_book) + " " +
+                to_string(target_max_book) + ", " +
+                "current_amount=" +
+                to_string(current_book - amount) + " "
                 "WHERE book_id=" +
                 to_string(book_id) + ";";
-        int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
-        sqlite3_finalize(stmt);
-        return result == SQLITE_OK;
+        sqlite3_exec(sql, (char *)sql_sentence.data(), nullptr, nullptr, nullptr);
+        return true;
     }
     bool db_register_book(
             int book_id,
@@ -194,6 +221,7 @@ namespace dutelab {
         stream << "(book_id, name, isbn, publisher, max_amount, current_amount, authors, registered_by, registered_at) ";
         stream << "VALUES (";
         stream << book_id << ",";
+        stream << "'" << name << "'" << ",";
         stream << "'" << isbn << "'" << ",";
         stream << "'" << publisher << "'" <<",";
         stream << max_amount << ",";
@@ -225,7 +253,7 @@ namespace dutelab {
         stream << "'" << encrypted_password << "'" << ","; // TEXT
         stream << "'" << (is_admin ? "admin" : "user") << "'" << ",";
         stream << "'[]');";
-        stream >> sql_sentence;
+        sql_sentence = stream.str();
         int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
         if (result != SQLITE_OK) {
             return false;

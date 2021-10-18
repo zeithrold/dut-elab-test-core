@@ -9,8 +9,10 @@
 using namespace std;
 
 namespace dutelab {
+    void remove_reverse_slash(string* target);
     void open_database();
     void close_database();
+    bool db_update_user_lent_books(const string& email, const string& lent_books);
     bool db_query_email_exist(const string& email);
     bool db_io_book(int book_id, int type);
     bool db_register_book(

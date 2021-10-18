@@ -81,7 +81,7 @@ namespace dutelab {
         const string user_menu_title[] = {
                 "1. Query Book",
                 "2. Borrow Book",
-                "3. Extend DDL",
+                "3. Return Book",
                 "4. My Info",
                 "-1. Quit"
         };

@@ -27,6 +27,23 @@ namespace dutelab {
         unsigned int max_amount;
         unsigned int current_amount;
         vector<string> authors;
+        Book ();
+        Book (sqlite3_stmt* stmt) {
+            this->book_id = sqlite3_column_int(stmt, 0);
+            this->name = (char *) sqlite3_column_text(stmt, 1);
+            this->isbn = (char *) sqlite3_column_text(stmt, 2);
+            this->publisher = (char *) sqlite3_column_text(stmt, 3);
+            this->registered_at = sqlite3_column_int64(stmt, 4);
+            this->registered_by = (char *) sqlite3_column_text(stmt, 5);
+            this->max_amount = sqlite3_column_int(stmt, 6);
+            this->current_amount = sqlite3_column_int(stmt, 7);
+            string authors_str = (char *) sqlite3_column_text(stmt, 8);
+            remove_reverse_slash(&authors_str);
+            json authors_arr = json::parse(authors_str);
+            for (auto iter = authors_arr.begin(); iter != authors_arr.end(); iter++) {
+                this->authors.push_back(iter.value());
+            }
+        }
     };
     vector<Book *> search_book(string keyword);
     Book * search_book(int book_id);
@@ -39,6 +56,19 @@ namespace dutelab {
         string password;
         string permission_group;
         vector<int> lent_books;
+        User (sqlite3_stmt* stmt) {
+            this->uid = sqlite3_column_int(stmt, 0);
+            this->name = (char *)sqlite3_column_text(stmt, 1);
+            this->email = (char *)sqlite3_column_text(stmt, 2);
+            this->password = (char *)sqlite3_column_text(stmt, 3);
+            this->permission_group = (char *)sqlite3_column_text(stmt, 4);
+            string str_lent_books = (char *)sqlite3_column_text(stmt, 5);
+            remove_reverse_slash(&str_lent_books);
+            json arr_lent_books = json::parse(str_lent_books);
+            for (auto iter = arr_lent_books.begin(); iter != arr_lent_books.end(); iter++) {
+                this->lent_books.push_back(iter.value());
+            }
+        }
         bool lend_book(int book_id) {
             if (this->lent_books.size() >= MAXIMUM_LEND_BOOKS) {
                 fatal("The amount of your lent books was on the maximum.");
@@ -55,13 +85,16 @@ namespace dutelab {
                 return false;
             }
             output_book(target_book);
-            cout << "Is it true? (yes to confirm, other to revoke)";
-            char *confirm = nullptr;
-            scanf("%s", confirm);
-            if (strcmp(confirm, "yes") != 0)
+            cout << "Is it true? (yes to confirm, other to revoke) > ";
+            cin.ignore();
+            string confirm;
+            std::getline(std::cin, confirm);
+            if (confirm != "yes")
                 return false;
+            db_io_book(target_book->book_id, ELAB_BOOK_LEND);
             this->lent_books.push_back(target_book->book_id);
-            return db_io_book(target_book->book_id, ELAB_BOOK_LEND);
+            json new_lent_books = this->lent_books;
+            db_update_user_lent_books(this->email, new_lent_books.dump());
         }
 
         bool return_book(int book_id) {
@@ -72,13 +105,16 @@ namespace dutelab {
             }
             auto target_book = search_book(book_id);
             output_book(target_book);
-            cout << "Is it true? (yes to confirm, other to revoke)";
-            char *confirm = nullptr;
-            scanf("%s", confirm);
-            if (strcmp(confirm, "yes") != 0)
+            cout << "Is it true? (yes to confirm, other to revoke) > ";
+            cin.ignore();
+            string confirm;
+            std::getline(std::cin, confirm);
+            if (confirm != "yes")
                 return false;
             this->lent_books.erase(std::remove(
                     this->lent_books.begin(), this->lent_books.end(), book_id), this->lent_books.end());
+            json arr_lent_books = this->lent_books;
+            db_update_user_lent_books(this->email, arr_lent_books.dump());
             return db_io_book(target_book->book_id, ELAB_BOOK_RETURN);
         }
 
