@@ -20,6 +20,7 @@ namespace dutelab {
         std::cout << "Fatal: " << reason << std::endl;
         std::cout << "Press enter to retry." << std::endl;
         getchar();
+        getchar();
     }
     void start() {
         PRINT_STAR;
@@ -27,6 +28,17 @@ namespace dutelab {
         std::cout << "Library Management System" << std::endl;
         std::cout << "Written by Zeithrold, open-sourced at GitHub under BSD-3 License." << std::endl;
         PRINT_STAR;
+    }
+    int lock_book() {
+        std::cout << "Type a book id to lock book." << endl;
+        int target_book_id;
+        printf("type a book id > ");
+        scanf("%d", &target_book_id);
+        if (search_book(target_book_id) == nullptr) {
+            dutelab::fatal("No match book found");
+            return 0;
+        }
+        return target_book_id;
     }
     string reg() {
         int uid;
@@ -89,8 +101,9 @@ namespace dutelab {
                 "11. Register Book",
                 "12. Add Book",
                 "13. Remove Book",
-                "14. Add User",
-                "15. Remove User"
+                "14. Delete Book",
+                "15. Add User",
+                "16. Remove User"
         };
         User* usr = dutelab::get_user(email);
         PRINT_STAR;
@@ -143,17 +156,15 @@ namespace dutelab {
         PRINT_STAR;
     }
     void menu_borrow_book(User* usr) {
-        std::cout << "Type a book id to lock book." << endl;
-        int target_book_id;
-        printf("type a book id > ");
-        scanf("%d", &target_book_id);
+        int target_book_id = lock_book();
+        if (target_book_id == 0)
+            return;
         usr->lend_book(target_book_id);
     }
     void menu_return_book(User* usr) {
-        std::cout << "Type a book id to lock book." << endl;
-        int target_book_id;
-        printf("type a book id > ");
-        scanf("%d", &target_book_id);
+        int target_book_id = lock_book();
+        if (target_book_id == 0)
+            return;
         usr->return_book(target_book_id);
     }
     void menu_show_usr_info(User* usr) {
@@ -228,14 +239,9 @@ namespace dutelab {
             dutelab::fatal("You don't have permission to access the menu.");
             return;
         }
-        std::cout << "Type a book id to lock book." << endl;
-        int target_book_id;
-        printf("type a book id > ");
-        scanf("%d", &target_book_id);
-        if (search_book(target_book_id) == nullptr) {
-            dutelab::fatal("No match book found");
+        int target_book_id = lock_book();
+        if (target_book_id == 0)
             return;
-        }
         unsigned int add_amount = 0;
         printf("type add amount > ");
         scanf("%d", &add_amount);
@@ -246,18 +252,25 @@ namespace dutelab {
             dutelab::fatal("You don't have permission to access the menu.");
             return;
         }
-        std::cout << "Type a book id to lock book." << endl;
-        int target_book_id;
-        printf("type a book id > ");
-        scanf("%d", &target_book_id);
-        if (search_book(target_book_id) == nullptr) {
-            dutelab::fatal("No match book found");
+        int target_book_id = lock_book();
+        if (target_book_id == 0)
             return;
-        }
         unsigned int add_amount = 0;
         printf("type del amount > ");
         scanf("%d", &add_amount);
-        usr->del_book(target_book_id, add_amount);
+        if (!usr->del_book(target_book_id, add_amount)) {
+            dutelab::fatal("Deleted too much");
+        }
+    }
+    void menu_admin_remove_book(User *usr) {
+        if (usr->permission_group != "admin") {
+            dutelab::fatal("You don't have permission to access the menu.");
+            return;
+        }
+        int target_book_id = lock_book();
+        if (target_book_id == 0)
+            return;
+        usr->remove_book(target_book_id);
     }
     void menu_admin_add_user(User *usr) {
         if (usr->permission_group != "admin") {
@@ -265,29 +278,27 @@ namespace dutelab {
             return;
         }
         int uid;
-        char *name;
-        char *email;
-        char *password;
-        char *is_admin;
+        string name;
+        string email;
+        string password;
+        string is_admin;
         bool admin;
+        cin.ignore();
         printf("enter uid > ");
         scanf("%d", &uid);
-        fflush(stdin);
         printf("enter name > ");
-        cin.getline(name, 40);
-        fflush(stdin);
+        std::getline(std::cin, name);
         printf("enter email > ");
-        cin.getline(email, 40);
-        fflush(stdin);
+        std::getline(std::cin, email);
         if (get_user(email) != nullptr) {
             dutelab::fatal("User exists.");
             return;
         }
         password = getpass("password (hidden)> ");
-        password = encrypt(password);
+        password = encrypt((char *)password.data());
         printf("is it an admin? (yes to yes, other to no) > ");
-        cin.getline(is_admin, 40);
-        admin = !strcmp(is_admin, "yes");
+        std::getline(std::cin, is_admin);
+        admin = is_admin == "yes";
         db_add_user(
                 uid,
                 name,
@@ -301,11 +312,17 @@ namespace dutelab {
             dutelab::fatal("You don't have permission to access the menu.");
             return;
         }
-        char *email = nullptr;
+        cin.ignore();
+        string email;
         printf("type email to remove > ");
-        scanf("%s", email);
+        std::getline(std::cin, email);
         if (get_user(email) == nullptr) {
             dutelab::fatal("No match user found.");
+            return;
+        }
+        auto target_user = dutelab::get_user(email);
+        if (!target_user->lent_books.empty()) {
+            dutelab::fatal("Return lent book first.");
             return;
         }
         db_del_user(email);
@@ -335,9 +352,12 @@ namespace dutelab {
                 menu_admin_del_book(usr);
                 return false;
             case 14:
-                menu_admin_add_user(usr);
+                menu_admin_del_user(usr);
                 return false;
             case 15:
+                menu_admin_add_user(usr);
+                return false;
+            case 16:
                 menu_admin_del_user(usr);
                 return false;
             case -1:

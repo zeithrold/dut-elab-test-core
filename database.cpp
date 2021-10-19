@@ -137,22 +137,20 @@ namespace dutelab {
             "DELETE FROM dut_book WHERE book_id=" +
             to_string(book_id) +
             ";";
-        auto result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
-        if (result != SQLITE_OK) {
-            return false;
-        }
-        sqlite3_finalize(stmt);
+        sqlite3_exec(sql, (char *)sql_sentence.data(), nullptr, nullptr, nullptr);
         sql_sentence.clear();
         sql_sentence =
             "SELECT * FROM dut_user WHERE lent_books like '%" +
             to_string(book_id) +
             "%' ;";
-        result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
+        auto result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
         if (result != SQLITE_OK) {
             return false;
         }
         while (sqlite3_step(stmt) == SQLITE_ROW) {
-            json lent_books = json::parse((char *)sqlite3_column_text(stmt, 5));
+            string str_lent_books = (char *)sqlite3_column_text(stmt, 5);
+            remove_reverse_slash(&str_lent_books);
+            json lent_books = json::parse(str_lent_books);
             int location = -1;
             for (auto iter = lent_books.begin(); iter != lent_books.end(); iter++) {
                 if (iter.value() == book_id) {
@@ -160,7 +158,10 @@ namespace dutelab {
                 }
             }
             lent_books.erase(location);
-            string sql_sentence_minor = "UPDATE dut_user SET lent_books=\"" + lent_books.dump() + "\";";
+            string sql_sentence_minor = "UPDATE dut_user SET lent_books='" +
+                    lent_books.dump() +
+                    "' WHERE email='" +
+                    (char *)sqlite3_column_text(stmt, 2) + "';";
             sqlite3_exec(sql, (char *)sql_sentence_minor.data(), nullptr, nullptr, nullptr);
         }
         sqlite3_finalize(stmt);
@@ -190,7 +191,7 @@ namespace dutelab {
         }
         int before_max_book = sqlite3_column_int(target_book, 6);
         int target_max_book = before_max_book - amount;
-        int current_book = sqlite3_column_int(stmt, 7);
+        int current_book = sqlite3_column_int(target_book, 7);
         if ((current_book - amount) < 0) {
             return false;
         }
@@ -229,12 +230,7 @@ namespace dutelab {
         stream << "'" << str_authors << "'" << ",";
         stream << "'" << registered_by << "'" << ",";
         stream << time(nullptr) << ");";
-        sql_sentence = stream.str();
-        int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
-        if (result != SQLITE_OK) {
-            return false;
-        }
-        sqlite3_finalize(stmt);
+        sqlite3_exec(sql, (char *)stream.str().data(), nullptr, nullptr, nullptr);
         return true;
     }
     bool db_add_user(int uid,
@@ -254,23 +250,14 @@ namespace dutelab {
         stream << "'" << (is_admin ? "admin" : "user") << "'" << ",";
         stream << "'[]');";
         sql_sentence = stream.str();
-        int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
-        if (result != SQLITE_OK) {
-            return false;
-        }
-        sqlite3_finalize(stmt);
+        sqlite3_exec(sql, (char *)sql_sentence.data(), nullptr, nullptr, nullptr);
         return true;
     }
     bool db_del_user(string email) {
         stringstream stream;
         string sql_sentence;
         stream << "DELETE FROM dut_user WHERE email='" << email << "';";
-        stream >> sql_sentence;
-        int result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
-        if (result != SQLITE_OK) {
-            return false;
-        }
-        sqlite3_finalize(stmt);
+        sqlite3_exec(sql, (char *)stream.str().data(), nullptr, nullptr, nullptr);
         return true;
     }
 }
