@@ -126,9 +126,10 @@ namespace dutelab {
     }
     void menu_query_book() {
         std::cout << "Type a keyword to search book." << endl;
-        char target_keyword[40];
+        string target_keyword;
+        cin.ignore();
         printf("type a keyword > ");
-        scanf("%s", target_keyword);
+        std::getline(std::cin, target_keyword);
         if (target_keyword[0] == '\0') {
             dutelab::fatal("You didn't type a keyword.");
         }
@@ -137,7 +138,6 @@ namespace dutelab {
             std::cout << "No matches found!" << endl;
             return;
         }
-        PRINT_STAR;
         std::cout << "Here's result for you." << endl;
         for (const auto &item : result) {
             PRINT_STAR;
@@ -153,7 +153,6 @@ namespace dutelab {
             }
             PRINT_STAR;
         }
-        PRINT_STAR;
     }
     void menu_borrow_book(User* usr) {
         int target_book_id = lock_book();
@@ -270,7 +269,9 @@ namespace dutelab {
         int target_book_id = lock_book();
         if (target_book_id == 0)
             return;
-        usr->remove_book(target_book_id);
+        if (!usr->remove_book(target_book_id)) {
+            dutelab::fatal("Still have user lending this book, clear first.");
+        }
     }
     void menu_admin_add_user(User *usr) {
         if (usr->permission_group != "admin") {
@@ -286,6 +287,7 @@ namespace dutelab {
         cin.ignore();
         printf("enter uid > ");
         scanf("%d", &uid);
+        cin.ignore();
         printf("enter name > ");
         std::getline(std::cin, name);
         printf("enter email > ");
@@ -349,10 +351,10 @@ namespace dutelab {
                 menu_admin_add_book(usr);
                 return false;
             case 13:
-                menu_admin_del_book(usr);
+                menu_admin_remove_book(usr);
                 return false;
             case 14:
-                menu_admin_del_user(usr);
+                menu_admin_del_book(usr);
                 return false;
             case 15:
                 menu_admin_add_user(usr);

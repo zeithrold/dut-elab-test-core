@@ -134,37 +134,48 @@ namespace dutelab {
             return false;
         }
         string sql_sentence =
-            "DELETE FROM dut_book WHERE book_id=" +
+            "SELECT * FROM dut_book WHERE book_id=" +
             to_string(book_id) +
             ";";
-        sqlite3_exec(sql, (char *)sql_sentence.data(), nullptr, nullptr, nullptr);
-        sql_sentence.clear();
-        sql_sentence =
-            "SELECT * FROM dut_user WHERE lent_books like '%" +
-            to_string(book_id) +
-            "%' ;";
         auto result = sqlite3_prepare_v2(sql, (char *)sql_sentence.data(), -1, &stmt, nullptr);
         if (result != SQLITE_OK) {
             return false;
         }
-        while (sqlite3_step(stmt) == SQLITE_ROW) {
-            string str_lent_books = (char *)sqlite3_column_text(stmt, 5);
-            remove_reverse_slash(&str_lent_books);
-            json lent_books = json::parse(str_lent_books);
-            int location = -1;
-            for (auto iter = lent_books.begin(); iter != lent_books.end(); iter++) {
-                if (iter.value() == book_id) {
-                    location = atoi(iter.key().c_str());
-                }
-            }
-            lent_books.erase(location);
-            string sql_sentence_minor = "UPDATE dut_user SET lent_books='" +
-                    lent_books.dump() +
-                    "' WHERE email='" +
-                    (char *)sqlite3_column_text(stmt, 2) + "';";
-            sqlite3_exec(sql, (char *)sql_sentence_minor.data(), nullptr, nullptr, nullptr);
+        if (sqlite3_step(stmt) != SQLITE_ROW) {
+            sqlite3_finalize(stmt);
+            // G O L A N G
+            return false;
+        }
+        int max_book = sqlite3_column_int(stmt, 6);
+        int current_book = sqlite3_column_int(stmt, 7);
+        if (max_book != current_book) {
+            return false;
         }
         sqlite3_finalize(stmt);
+        sql_sentence.clear();
+        sql_sentence =
+                "DELETE FROM dut_book WHERE book_id=" +
+                to_string(book_id) +
+                ";";
+        sqlite3_exec(sql, (char *)sql_sentence.data(), nullptr, nullptr, nullptr);
+
+//        while (sqlite3_step(stmt) == SQLITE_ROW) {
+//            string str_lent_books = (char *)sqlite3_column_text(stmt, 5);
+//            remove_reverse_slash(&str_lent_books);
+//            json lent_books = json::parse(str_lent_books);
+//            int location = -1;
+//            for (auto iter = lent_books.begin(); iter != lent_books.end(); iter++) {
+//                if (iter.value() == book_id) {
+//                    location = atoi(iter.key().c_str());
+//                }
+//            }
+//            lent_books.erase(location);
+//            string sql_sentence_minor = "UPDATE dut_user SET lent_books='" +
+//                    lent_books.dump() +
+//                    "' WHERE email='" +
+//                    (char *)sqlite3_column_text(stmt, 2) + "';";
+//            sqlite3_exec(sql, (char *)sql_sentence_minor.data(), nullptr, nullptr, nullptr);
+//        }
         return true;
     }
     bool db_add_book(int book_id, unsigned int amount) {
@@ -247,7 +258,12 @@ namespace dutelab {
         stream << "'" << name << "'" << ","; // TEXT
         stream << "'" << email << "'" << ","; // TEXT
         stream << "'" << encrypted_password << "'" << ","; // TEXT
-        stream << "'" << (is_admin ? "admin" : "user") << "'" << ",";
+        string permission_group;
+        if (is_admin)
+            permission_group = "admin";
+        else
+            permission_group = "user";
+        stream << "'" << permission_group << "'" << ","; // TEXT
         stream << "'[]');";
         sql_sentence = stream.str();
         sqlite3_exec(sql, (char *)sql_sentence.data(), nullptr, nullptr, nullptr);
