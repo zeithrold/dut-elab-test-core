@@ -23,4 +23,7 @@ jobs:
         submodules: true
     - name: Build
       run: cmake CMakeLists.txt; make
+      env:
+        CC: clang
+        CXX: clang++
       
