@@ -26,7 +26,7 @@ namespace dutelab {
         string registered_by;
         unsigned int max_amount;
         unsigned int current_amount;
-        vector<string> authors;
+        std::vector<string> authors;
         Book ();
         Book (sqlite3_stmt* stmt) {
             this->book_id = sqlite3_column_int(stmt, 0);
@@ -45,7 +45,7 @@ namespace dutelab {
             }
         }
     };
-    vector<Book *> search_book(string keyword);
+    std::vector<Book *> search_book(string keyword);
     Book * search_book(int book_id);
     void output_book(Book* target_book);
     class User {
@@ -55,7 +55,7 @@ namespace dutelab {
         string email;
         string password;
         string permission_group;
-        vector<int> lent_books;
+        std::vector<int> lent_books;
         User (sqlite3_stmt* stmt) {
             this->uid = sqlite3_column_int(stmt, 0);
             this->name = (char *)sqlite3_column_text(stmt, 1);

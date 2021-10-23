@@ -222,7 +222,7 @@ namespace dutelab {
             const string& isbn,
             const string& publisher,
             int max_amount,
-            const vector<string>& authors,
+            const std::vector<string>& authors,
             const string& registered_by
     ) {
         json arr_authors = authors;

@@ -44,8 +44,8 @@ namespace dutelab {
         return strcmp((char *)usr->password.data(), (char *)encrypted_password.data()) == 0;
     }
 
-    vector<Book *> search_book(string keyword) {
-        vector<Book*> arr;
+    std::vector<Book *> search_book(string keyword) {
+        std::vector<Book*> arr;
         sqlite3_stmt* stmt = db_query_book(std::move(keyword));
         if (stmt == nullptr) return arr;
         do {

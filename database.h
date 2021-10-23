@@ -3,6 +3,7 @@
 //
 #include <sqlite3.h>
 #include <cstdio>
+#include <vector>
 #define ELAB_BOOK_LEND 0
 #define ELAB_BOOK_RETURN 1
 
@@ -21,7 +22,7 @@ namespace dutelab {
             const string& isbn,
             const string& publisher,
             int max_amount,
-            const vector<string>& authors,
+            const std::vector<string>& authors,
             const string& registered_by
             );
     bool db_add_book(int book_id, unsigned int amount);
