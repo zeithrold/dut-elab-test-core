@@ -17,7 +17,6 @@ jobs:
       matrix:
         os: [ubuntu-18.04, ubuntu-20.04, macos-11, macos-10.15]
     steps:
-    
     - uses: actions/checkout@v2
       with:
         submodules: true
@@ -32,7 +31,6 @@ jobs:
       matrix:
         os: [ubuntu-18.04, ubuntu-20.04, macos-11, macos-10.15]
     steps:
-    
     - uses: actions/checkout@v2
       with:
         submodules: true
@@ -41,3 +39,21 @@ jobs:
       env:
         CC: gcc
         CXX: g++
+  build-windows:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-2019, windows-2022]
+    steps:
+    - name: Install SQLite3
+      shell: pwsh
+      run: choco install sqlite
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Build
+      shell: pwsh
+      run: cmake CMakeLists.txt; make
+      env:
+        CC: msvc
+        CXX: msvc
