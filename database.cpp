@@ -10,12 +10,6 @@
 #include <ctime>
 #include "database.h"
 #include "extlib/configor/include/configor/json.hpp"
-#if defined(_WIN32)
-#include <objbase.h>
-#elif defined(__linux__)
-#include <uuid/uuid.h>
-#endif
-
 using namespace std;
 using namespace configor;
 using namespace dutelab;
