@@ -14,3 +14,5 @@ The project is built `pass` on `Ubuntu 18.04`, `Ubuntu 20.04`, `macOS 10.15`, `m
 4. Run `CC=clang CXX=clang++ cmake CMakeLists.txt; make`, which will compile the source code.
 5. Run `cd output; cat ../initialDB.sql | sqlite3 data.db`, which will create a initial database.
 6. Run `./dut_elab_test_core` and enjoy!
+
+NOTE: The initial admin account is elab@example.dlut.edu.cn, whose password is 0123.
